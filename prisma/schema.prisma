@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  password   String
+  firstname  String
+  middlename String?
+  lastname   String
+
+  tasks      Task[] // One-to-Many: A user can have multiple tasks
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  user        User     @relation(fields: [user_id], references: [id])
+  title       String
+  description String?
+  dueDate     String   @db.VarChar(10) // Storing date as string (YYYY-MM-DD)
+  time        String   @db.VarChar(8)  // Storing time as string (HH:mm:ss)
+  status      String   @default("pending") 
+  categories  TaskCategory[]
+}
+
+model Category {
+  id            Int      @id @default(autoincrement())
+  category_name String   @unique
+
+  tasks         TaskCategory[]
+}
+
+model TaskCategory {
+  task_id     Int
+  category_id Int
+
+  task        Task      @relation(fields: [task_id], references: [id])
+  category    Category  @relation(fields: [category_id], references: [id])
+
+  @@id([task_id, category_id]) // Composite primary key
+}
